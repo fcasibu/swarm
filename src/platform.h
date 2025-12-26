@@ -35,7 +35,8 @@ typedef struct {
     platform_api platform;
 } platform_memory;
 
-void
-GameUpdateAndRender(platform_memory *memory, game_input *input);
+
+#define GAME_UPDATE_AND_RENDER(name) void name(platform_memory *memory, game_input *input)
+typedef GAME_UPDATE_AND_RENDER(game_update_and_render);
 
 #endif // PLATFORM_H

@@ -1,6 +1,8 @@
-#include "game.h"
 #include "raylib.h"
 #include "raymath.h"
+
+#include "base_types.h"
+#include "game.h"
 
 internal void
 EmitDisintegrate(game_state *state, Vector2 pos, Color color, f32 radius)
@@ -123,7 +125,7 @@ SpawnProjectile(game_state *state, Vector2 target)
 
     Vector2 diff = Vector2Subtract(target, state->positions[state->player_index].value);
 
-    f32 speed = 500.0f;
+    f32 speed = 800.0f;
     state->velocities[idx].value = Vector2Scale(Vector2Normalize(diff), speed);
 }
 
@@ -150,13 +152,13 @@ SpawnSystem(game_state *state, game_input *input)
             f32 angle = (f32)GetRandomValue(0, 360) * DEG2RAD;
             f32 radius = 700.0f;
             Vector2 spawn_pos = { center.x + cosf(angle) * radius,
-                                  center.y + sinf(angle) * radius };
+                center.y + sinf(angle) * radius };
 
             SpawnEnemy(state, spawn_pos);
         }
     }
 
-    if (input->action_shoot && state->projectile_spawn_timer >= 0.1f) {
+    if (input->action_shoot && state->projectile_spawn_timer >= 0.05f) {
         state->projectile_spawn_timer = 0.0f;
 
         Vector2 world_mouse = GetScreenToWorld2D(input->mouse_pos, state->camera);
@@ -177,7 +179,7 @@ DespawnSystem(game_state *state)
             state->entities[write_idx] = state->entities[read_idx];
 #define X(type, name) state->name[write_idx] = state->name[read_idx];
             COMPONENT_LIST
-#undef X
+            #undef X
 
             if (read_idx == state->player_index) {
                 state->player_index = write_idx;
@@ -246,7 +248,7 @@ PlayerEnemyCollisionSystem(game_state *state)
         renderable entity_r = state->renderables[enemy_idx];
 
         if (CheckCollisionCircles(
-                player_pos.value, player_r.radius, entity_pos.value, entity_r.radius)) {
+            player_pos.value, player_r.radius, entity_pos.value, entity_r.radius)) {
             state->entities[enemy_idx].tag = Tag_Dead;
             AddFlag(state->entities[state->player_index].components, Comp_Collision);
 
@@ -276,7 +278,7 @@ ProjectileCollisionSystem(game_state *state)
             position enemy_pos = state->positions[enemy_idx];
 
             if (CheckCollisionCircles(
-                    projectile_pos.value, projectile_r.radius, enemy_pos.value, enemy_r.radius)) {
+                projectile_pos.value, projectile_r.radius, enemy_pos.value, enemy_r.radius)) {
                 AddFlag(state->entities[enemy_idx].components, Comp_Collision);
                 state->entities[projectile_idx].tag = Tag_Dead;
 
@@ -404,8 +406,7 @@ HealthSystem(game_state *state)
     }
 }
 
-void
-GameUpdateAndRender(platform_memory *memory, game_input *input)
+extern GAME_UPDATE_AND_RENDER(GameUpdateAndRender)
 {
     game_state *state = (game_state *)memory->permanent_storage;
     state->time += input->dt;
